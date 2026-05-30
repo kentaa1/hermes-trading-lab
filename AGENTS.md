@@ -40,16 +40,26 @@ El laboratorio opera con 6 roles especializados. Cada rol tiene un modelo asigna
 - Documenta fuentes con formato obligatorio
 - Colabora con Gestor de Riesgo para refinar hipótesis
 
+## Prompts de rol
+
+| Rol | Prompt |
+|---|---|
+| Coder MQL5 | `01_PROMPTS/coder_mql5.md` |
+| Gestor de Riesgo | `01_PROMPTS/risk_manager.md` |
+| Estratega | `01_PROMPTS/strategist.md` |
+| Auxiliares | Usar HERMES.md + skill trading-lab-workflow como contexto |
+
 ## Protocolo de delegación
 
 1. Coordinador recibe tarea
 2. Identifica rol necesario
 3. Verifica que la tarea cumple prerrequisitos del estado actual
-4. Delega al rol correspondiente con contexto completo
-5. Rol ejecuta y devuelve resultado a Coordinador
-6. Coordinador verifica criterio cumplido + commit
+4. Carga el prompt de rol correspondiente
+5. Delega al rol correspondiente con contexto completo (prompt + ficha + constraints)
+6. Rol ejecuta y devuelve resultado a Coordinador
+7. Coordinador verifica criterio cumplido + commit
 
 ## Nota
 
 > El Coordinador nunca implementa código MQL5 directamente. Si se necesita una
-> tarea de código, se delega al Coder MQL5.
+> tarea de código, se delega al Coder MQL5 con el prompt de rol como system prompt.
