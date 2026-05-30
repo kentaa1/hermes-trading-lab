@@ -64,9 +64,10 @@ Cada estado es una puerta. No avanzar sin cumplir criterios. Documentar transici
 
 ## Próxima Acción Pendiente
 
-1. Crear plantilla MQL5 congelada (bloque congelado + bloque editable)
+1. ~~Crear plantilla MQL5 congelada~~ — ✅ Creada y etiquetada como `frozen-template-v1`
 2. Crear perfil de símbolo EURUSD en 05_SYMBOL_PROFILES/
-3. Lanzar EXP_001
+3. Generar primera hipótesis en 10_RESEARCH/ y validar avance
+4. Ejecutar EXP_001
 
 ## Reglas de Comportamiento del Agente
 
