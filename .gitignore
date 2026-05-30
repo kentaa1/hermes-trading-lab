@@ -1,0 +1,41 @@
+# Hermes-Trading-Lab .gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+
+# MQL5 compilado
+*.ex5
+*.ex4
+
+# Entornos
+.env
+*.env
+*.venv/
+venv/
+
+# Logs
+*.log
+logs/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Backtest raw data (large files)
+*.hst
+*.fxt
+
+# Temporary
+tmp/
+temp/
