@@ -58,7 +58,7 @@ Cada estado es una puerta. No avanzar sin cumplir criterios. Documentar transici
 ## Estado del Proyecto (actualizar tras cada experimento)
 
 - **Experimentos completados:** 0
-- **Experimento actual:** pendiente de iniciar (EXP_001)
+- **Experimento actual:** EXP_001 — STRAT_001_ema_crossover_adx (estado: SPECIFIED, pendiente aprobación)
 - **Fase:** 1 (controlada)
 - **DEMO_READY:** NO desbloqueado
 
@@ -66,8 +66,8 @@ Cada estado es una puerta. No avanzar sin cumplir criterios. Documentar transici
 
 1. ~~Crear plantilla MQL5 congelada~~ — ✅ Creada y etiquetada como `frozen-template-v1`
 2. Crear perfil de símbolo EURUSD en 05_SYMBOL_PROFILES/
-3. Generar primera hipótesis en 10_RESEARCH/ y validar avance
-4. Ejecutar EXP_001
+3. ~~Generar primera hipótesis~~ — ✅ STRAT_001 creada, pendiente aprobación humana
+4. Aprobación humana → pasar a CODED (Coder MQL5 implementa en bloque editable)
 
 ## Reglas de Comportamiento del Agente
 
