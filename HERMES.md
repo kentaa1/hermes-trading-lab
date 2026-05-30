@@ -58,16 +58,17 @@ Cada estado es una puerta. No avanzar sin cumplir criterios. Documentar transici
 ## Estado del Proyecto (actualizar tras cada experimento)
 
 - **Experimentos completados:** 0
-- **Experimento actual:** EXP_001 — STRAT_001_ema_crossover_adx (estado: SPECIFIED, pendiente aprobación)
+- **Experimento actual:** EXP_001 — STRAT_001_ema_crossover_adx (estado: SPECIFIED → CODED pendiente — Coder MQL5 no implementado aún)
 - **Fase:** 1 (controlada)
 - **DEMO_READY:** NO desbloqueado
 
 ## Próxima Acción Pendiente
 
-1. ~~Crear plantilla MQL5 congelada~~ — ✅ Creada y etiquetada como `frozen-template-v1`
+1. ~~Crear plantilla MQL5 congelada~~ — ✅ Creada y etiquetada `frozen-template-v1`
 2. Crear perfil de símbolo EURUSD en 05_SYMBOL_PROFILES/
-3. ~~Generar primera hipótesis~~ — ✅ STRAT_001 creada, pendiente aprobación humana
-4. Aprobación humana → pasar a CODED (Coder MQL5 implementa en bloque editable)
+3. ~~Generar primera hipótesis~~ — ✅ STRAT_001 HIP_001 especificada y aprobada para CODED
+4. **Implementar agente Coder MQL5** (subagente con prompt `01_PROMPTS/coder_mql5.md`)
+5. Coder MQL5 implementa STRAT_001 en bloque editable → COMPILED → BACKTESTED
 
 ## Reglas de Comportamiento del Agente
 
