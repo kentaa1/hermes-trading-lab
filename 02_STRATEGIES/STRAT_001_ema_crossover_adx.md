@@ -7,12 +7,31 @@
 En EURUSD H1, el cruce alcista/bajista de EMA(12) sobre EMA(26), filtrado por ADX(14) > 25 (tendencia activa) y limitado a sesión europea (07:00-15:00 UTC), genera una expectativa positiva medible con PF ≥ 1.30 en IS y degradación OOS ≤ 15%.
 
 ## Fuente
-- **Autor(es):** Andrew W. Mamaysky, Hua Wang, y Jiang Wang
-- **Año:** 2005 (corrección:  verificable en JF)
-- **Publicación:** Journal of Finance — "Foundations of Technical Analysis"
-- **Sección relevante:**  Rules based on technical patterns
 
-**Nota de transparencia:** Esta fuente es real y verificable (Lo, Mamaysky & Wang 2000, JF 55(4)). El paper demuestra que las señales de medias móviles contienen información estadísticamente significativa. La aplicación específica a EURUSD H1 con ADX es la hipótesis que este backtest valida o rechaza.
+### Fuente 1 — Modelo de medias móviles e ineficiencia (VERIFICADA)
+- **Autor(es):** R. Baviera, M. Pasquini, J. Raboanary, M. Serva
+- **Año:** 2000
+- **Publicación:** arXiv:cond-mat/0011337 [q-fin.TR] — enviado a *Quantitative Finance*
+- **Sección relevante:** Modelo estocástico con media móvil de log-precios. Las estrategias basadas en medias móviles generan crecimiento del capital mayor que el activo subyacente, evidenciando ineficiencia parcial del mercado.
+- **Verificación:** API de arXiv confirma título, autores y abstract.
+- **Acceso:** https://arxiv.org/abs/cond-mat/0011337
+
+### Fuente 2 — Reglas técnicas intradiarias en forex (VERIFICABLE)
+- **Autor(es):** Cheung, Y.W. & Wong, C.Y.P.
+- **Año:** 1997
+- **Publicación:** *Journal of Financial Economics* — "Do technical trading rules generate profits? Conclusions from the intra-day foreign exchange market"
+- **Sección relevante:** Demuestra que reglas de trading técnico generan retornos significativos en mercados de divisas intradiarios
+- **Verificación:** DOI 10.1002/(sici)1099-1158(199710)2:4<267::aid-jfe57>3.0.co;2-j
+
+### Fuente 3 — Uso de análisis técnico por dealers de forex (VERIFICABLE)
+- **Autor(es):** So, M.K.P., Lam, K. & Yeung, W.K.
+- **Año:** 1998
+- **Publicación:** *Journal of International Financial Markets, Institutions and Money*
+- **Sección relevante:** Encuesta confirma que medias móviles y osciladores de momentum son las herramientas más usadas por profesionales
+- **Verificación:** DOI 10.1016/s0261-5606(98)00011-4
+
+**Nota de transparencia:** La Fuente 1 fue verificada directamente con la API de arXiv (abstract confirmado). Las Fuentes 2 y 3 fueron verificadas por DOI vía OpenAlex. No he leído los papers completos de las fuentes 2 y 3 — solo títulos y abstracts.
+
 
 ## Indicadores
 
@@ -96,17 +115,20 @@ REWORK si:
 
 **Qué podría hacer que este edge no exista o desaparezca en OOS:**
 
-1. **Regime change:** El paper de Lo et al. usa datos pre-2000. EURUSD en 2020-2025 tiene características diferentes (QE, crisis de deuda soberana en EUR, después guerra de Ucrania). El momentum de EMA podría ser insignificante en el régimen actual.
+1. **Datos antiguos (Fuente 1: Baviera et al. 2000, datos pre-2000; Fuente 2: Cheung & Wong 1997, datos de los 90).** El mercado EURUSD en 2020-2025 tiene características estructurales muy diferentes: QBs, tipos de interés negativos, guerra en Ucrania, sentiment de divisas como safe haven. Un edge que existía en los 90 puede estar arbitraged away hoy.
 
-2. **Filtro ADX demasiado restrictivo:** ADX > 25 en H1 para EURUSD — si el mercado pasa mucho tiempo en rango (como EURUSD tiende a hacer), el filtro puede rechazar el 80% de las señales, resultando en < 100 trades IS. Esto es el mayor riesgo de esta estrategia.
+2. **ADX(14) > 25 en EURUSD H1 es muy restrictivo.** EURUSD pasa largos periodos en rango (< 200 pips en un mes). Si ADX no supera 25, no se genera señal. El riesgo principal es que el filtro de sesión + ADX produzca < 100 trades IS en el período propuesto.
 
-3. **Sesión europea reduce muestra:** Limitar a 8 horas/día × 5 días = ~20 baras candidatas/día. Menos oportunidades = menos trades = más difícil alcanzar 100 trades IS en un período razonable.
+3. **Sesión europea reduce la muestra.** De ~24 horas/día de mercado forex, solo operamos en 8 horas × 5 días = ~20 barras candidatas/día. Menos oportunidades = menos trades = difícil alcanzar 100 trades IS en 3.5 años. Si no se alcanzan 100 trades IS → REJECTED por criterio de minimum sample.
 
-4. **Risk/Reward 1:2 con SL 50 pips:** Para EURUSD H1, un SL de 50 pips es relativamente ajustado. En sesiones de alta volatilidad (Londres/NY overlap), el SL puede tocar frecuentemente antes de que TP se alcance. Winrate podría caer bajo 40%.
+4. **EMA(12,26) y ADX(14) son defaults de MetaTrader 5.** No están optimizados para EURUSD H1. Son los valores que el 90% de los traders minoristas usan, lo que crea un posible bias: si hay edge, puede ser porque miles de traders crean el mismo patrón de entrada/salida (self-fulfilling prophecy), que desaparece si el sentimiento cambia.
 
-5. **Sobreajuste implícito:** Los parámetros EMA(12,26) y ADX(14) son los defaults de MetaTrader. No están optimizados para este timeframe específico. Pueden ser arbitrarios.
+5. **Sin filtro de noticias macro.** Eventos como NFP, decisiones de ECB/FOMC, discursos de gobernadores — pueden causar velas H1 de 150-300 pips. Un SL de 50 pips puede tocar frecuente en estos contextos, antes de que TP se alcance.
 
-6. **Sin filtro de noticias:** Eventos macro (NFP, decisión ECB/FOMC) pueden causar velas H1 de 200+ pips que invalidan la lógica del cruce EMA.
+6. **Baviera et al. modelan medias de log-precios, no cruces.** La aplicación directa al cruce EMA(12/26) es una extensión que necesita validación empírica. El paper justifica el momentum de medias, pero no el cruce específico como señal de entrada.
+
+7. **Posible look-ahead bias en la definición de sesión.** La sesión europea (07:00-15:00 UTC) es fija. Si la hora de la barra H1 es la hora de apertura (estándar MT5), la señal se calcula al cierre de la barra, no al inicio. Esto debería funcionar correctamente en la plantilla (el bloque congelado solo actúa en nueva barra), pero debe verificarse.
+
 
 ## Estado
 `SPECIFIED` — Pendiente de aprobación humana antes de CODED.
