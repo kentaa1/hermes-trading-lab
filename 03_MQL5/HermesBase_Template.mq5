@@ -14,13 +14,37 @@
 //+------------------------------------------------------------------+
 #property copyright "Hermes-Trading-Lab"
 #property link      ""
-#property version   "1.00"
+#property version   "1.10"
 #property strict
 #property description "Plantilla base del laboratorio. Bloque congelado + editable."
 
 #include <Trade\Trade.mqh>
 #include <Trade\PositionInfo.mqh>
 #include <Trade\SymbolInfo.mqh>
+
+//+------------------------------------------------------------------+
+//|  BLOQUE EDITABLE — ESTRATEGIA (DECLARACIONES FORWARD)           |
+//|  Los inputs y forward declarations van ANTES del bloque         |
+//|  congelado porque MQL5 requiere declaraciones previas.          |
+//+------------------------------------------------------------------+
+
+//--- Parámetros de la estrategia STRAT_001
+input int    InpEmaFastPeriod  = 12;    // EMA rápida (periodos)
+input int    InpEmaSlowPeriod  = 26;    // EMA lenta (periodos)
+input int    InpAdxPeriod      = 14;    // ADX periodo
+input int    InpAdxThreshold   = 25;    // ADX umbral mínimo (tendencia activa)
+input int    InpSessionStart   = 7;     // Hora inicio sesión (UTC)
+input int    InpSessionEnd     = 15;    // Hora fin sesión (UTC)
+
+//--- Handles de indicadores (declaración global)
+int handleEmaFast  = INVALID_HANDLE;
+int handleEmaSlow  = INVALID_HANDLE;
+int handleAdx      = INVALID_HANDLE;
+
+//--- Forward declarations (requeridas por MQL5)
+int  OnStrategyInit();
+int  GetStrategySignal();
+bool IsSessionActive();
 
 //+------------------------------------------------------------------+
 //|  BLOQUE CONGELADO — MOTOR DE EJECUCIÓN                          |
@@ -33,6 +57,7 @@ input double InpRiskPct     = 1.0;          // Riesgo por operación (% del bala
 input int    InpStopLoss    = 50;           // Stop Loss (en puntos)
 input int    InpTakeProfit  = 100;          // Take Profit (en puntos)
 input int    InpSlippage    = 10;           // Slippage máximo (en puntos)
+input double InpFixedCapital = 10000.0;     // Capital fijo de referencia (USD)
 
 //--- Objetos globales
 CTrade         trade;
@@ -71,9 +96,6 @@ bool HasOpenPosition()
    }
    return false;
 }
-
-//--- Capital fijo para Fase 1 (sin compounding)
-input double InpFixedCapital = 10000.0; // Capital fijo de referencia (USD)
 
 //--- CalcLotSize(): calcula el tamaño de lote según riesgo % y SL en puntos
 double CalcLotSize(double slPoints)
@@ -122,7 +144,7 @@ int OnInit()
       return INIT_FAILED;
    }
 
-   Print("HermesBase_Template v1.00 inicializado. Magic=", InpMagic,
+   Print("HermesBase_Template v1.10 inicializado. Magic=", InpMagic,
          " Risk=", InpRiskPct, "% SL=", InpStopLoss, " TP=", InpTakeProfit);
    return INIT_SUCCEEDED;
 }
@@ -191,31 +213,18 @@ void OnTick()
 //+------------------------------------------------------------------+
 
 //+------------------------------------------------------------------+
-//|  BLOQUE EDITABLE — ESTRATEGIA                                   |
-|  STRAT_001: Cruce EMA + Filtro ADX + Sesión Europea             |
-|  Límites de este bloque:                                        |
-|   ✅ Definir inputs de parámetros de indicadores                |
-|   ✅ Calcular señales de entrada/salida con indicadores         |
-|   ✅ Definir señal en GetStrategySignal()                        |
-|   ❌ Acceder a Close() / PositionClose() / trade.PositionClose()|
-|   ❌ Modificar cualquier cosa fuera de este bloque              |
-|   ❌ Usar trailing stop, martingala, grid                        |
-|   ❌ Modificar SL/TP definidos en el bloque congelado           |
-|   ❌ Abrir/cerrar posiciones directamente                       |
+//|  BLOQUE EDITABLE — ESTRATEGIA (IMPLEMENTACIONES)                |
+//|  STRAT_001: Cruce EMA + Filtro ADX + Sesión Europea             |
+//|  Límites de este bloque:                                        |
+//|   ✅ Definir inputs de parámetros de indicadores                |
+//|   ✅ Calcular señales de entrada/salida con indicadores         |
+//|   ✅ Definir señal en GetStrategySignal()                        |
+//|   ❌ Acceder a Close() / PositionClose() / trade.PositionClose()|
+//|   ❌ Modificar cualquier cosa fuera de este bloque              |
+//|   ❌ Usar trailing stop, martingala, grid                        |
+//|   ❌ Modificar SL/TP definidos en el bloque congelado           |
+//|   ❌ Abrir/cerrar posiciones directamente                       |
 //+------------------------------------------------------------------+
-
-//--- Parámetros de la estrategia STRAT_001
-input int    InpEmaFastPeriod  = 12;    // EMA rápida (periodos)
-input int    InpEmaSlowPeriod  = 26;    // EMA lenta (periodos)
-input int    InpAdxPeriod      = 14;    // ADX periodo
-input int    InpAdxThreshold   = 25;    // ADX umbral mínimo (tendencia activa)
-input int    InpSessionStart   = 7;     // Hora inicio sesión (UTC)
-input int    InpSessionEnd     = 15;    // Hora fin sesión (UTC)
-
-//--- Handles de indicadores
-int handleEmaFast  = INVALID_HANDLE;
-int handleEmaSlow  = INVALID_HANDLE;
-int handleAdx      = INVALID_HANDLE;
 
 //+------------------------------------------------------------------+
 //|  OnStrategyInit: inicializar handles de indicadores             |
@@ -243,8 +252,6 @@ int OnStrategyInit()
 bool IsSessionActive()
 {
    MqlDateTime dt;
-   TimeToStruct(TimeCurrent(), dt);
-   // Usar hora de la barra actual (no TimeCurrent)
    datetime barTime = iTime(_Symbol, PERIOD_H1, 0);
    TimeToStruct(barTime, dt);
 
@@ -256,7 +263,7 @@ bool IsSessionActive()
 
 //+------------------------------------------------------------------+
 //|  GetStrategySignal: calcula la señal de la estrategia           |
-|  Devuelve: +1 = compra, -1 = venta, 0 = sin señal              |
+//|  Devuelve: +1 = compra, -1 = venta, 0 = sin señal              |
 //+------------------------------------------------------------------+
 int GetStrategySignal()
 {
@@ -287,5 +294,5 @@ int GetStrategySignal()
 //+------------------------------------------------------------------+
 //|  FIN BLOQUE EDITABLE — ESTRATEGIA                               |
 //+------------------------------------------------------------------+
- // <<< FIN DEL ARCHIVO >>>   
- // >>> NO ESCRIBA NADA DEBAJO DE ESTA LÍNEA <<<
+// <<< FIN DEL ARCHIVO >>>
+// >>> NO ESCRIBA NADA DEBAJO DE ESTA LÍNEA <<<
