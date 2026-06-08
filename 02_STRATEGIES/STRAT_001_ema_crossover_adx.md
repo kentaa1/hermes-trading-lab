@@ -131,7 +131,10 @@ REWORK si:
 
 
 ## Estado
-`SPECIFIED` — Pendiente de aprobación humana antes de CODED.
+`CODED` — Implementado en bloque editable de HermesBase_Template.mq5. Pendiente compilación en MetaEditor.
 
 ## Fecha de creación
 2026-05-30
+
+## Fecha de implementación
+2026-06-08

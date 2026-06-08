@@ -192,57 +192,96 @@ void OnTick()
 
 //+------------------------------------------------------------------+
 //|  BLOQUE EDITABLE — ESTRATEGIA                                   |
-//|  Límites de este bloque:                                        |
-//|   ✅ Definir inputs de parámetros de indicadores                |
-//|   ✅ Calcular señales de entrada/salida con indicadores         |
-//|   ✅ Definir señal en GetStrategySignal()                        |
-//|   ❌ Acceder a Close() / PositionClose() / trade.PositionClose()|
-//|   ❌ Modificar cualquier cosa fuera de este bloque              |
-//|   ❌ Usar trailing stop, martingala, grid                        |
-//|   ❌ Modificar SL/TP definidos en el bloque congelado           |
-//|   ❌ Abrir/cerrar posiciones directamente                       |
+|  STRAT_001: Cruce EMA + Filtro ADX + Sesión Europea             |
+|  Límites de este bloque:                                        |
+|   ✅ Definir inputs de parámetros de indicadores                |
+|   ✅ Calcular señales de entrada/salida con indicadores         |
+|   ✅ Definir señal en GetStrategySignal()                        |
+|   ❌ Acceder a Close() / PositionClose() / trade.PositionClose()|
+|   ❌ Modificar cualquier cosa fuera de este bloque              |
+|   ❌ Usar trailing stop, martingala, grid                        |
+|   ❌ Modificar SL/TP definidos en el bloque congelado           |
+|   ❌ Abrir/cerrar posiciones directamente                       |
 //+------------------------------------------------------------------+
 
-//--- TODO: Aquí se definen los parámetros de la estrategia (inputs)
-input int    InpEmaFastPeriod = 12;    // EMA rápida (periodos)
-input int    InpEmaSlowPeriod = 26;    // EMA lenta (periodos)
-input ENUM_APPLIED_PRICE InpEmaPrice = PRICE_CLOSE; // Precio aplicado
+//--- Parámetros de la estrategia STRAT_001
+input int    InpEmaFastPeriod  = 12;    // EMA rápida (periodos)
+input int    InpEmaSlowPeriod  = 26;    // EMA lenta (periodos)
+input int    InpAdxPeriod      = 14;    // ADX periodo
+input int    InpAdxThreshold   = 25;    // ADX umbral mínimo (tendencia activa)
+input int    InpSessionStart   = 7;     // Hora inicio sesión (UTC)
+input int    InpSessionEnd     = 15;    // Hora fin sesión (UTC)
 
-//--- TODO: Declarar handles de indicadores aquí
-int handleEmaFast = INVALID_HANDLE;
-int handleEmaSlow = INVALID_HANDLE;
+//--- Handles de indicadores
+int handleEmaFast  = INVALID_HANDLE;
+int handleEmaSlow  = INVALID_HANDLE;
+int handleAdx      = INVALID_HANDLE;
 
 //+------------------------------------------------------------------+
-//|  OnInit editable: inicializar handles de indicadores             |
+//|  OnStrategyInit: inicializar handles de indicadores             |
 //+------------------------------------------------------------------+
 int OnStrategyInit()
 {
-   // TODO: Crear handles de indicadores
-   // handleEmaFast = iMA(_Symbol, PERIOD_H1, InpEmaFastPeriod, 0, MODE_EMA, InpEmaPrice);
-   // handleEmaSlow = iMA(_Symbol, PERIOD_H1, InpEmaSlowPeriod, 0, MODE_EMA, InpEmaPrice);
+   handleEmaFast = iMA(_Symbol, PERIOD_H1, InpEmaFastPeriod, 0, MODE_EMA, PRICE_CLOSE);
+   handleEmaSlow = iMA(_Symbol, PERIOD_H1, InpEmaSlowPeriod, 0, MODE_EMA, PRICE_CLOSE);
+   handleAdx     = iADX(_Symbol, PERIOD_H1, InpAdxPeriod);
 
+   if(handleEmaFast == INVALID_HANDLE || handleEmaSlow == INVALID_HANDLE || handleAdx == INVALID_HANDLE)
+   {
+      Print("ERROR: no se pudieron crear handles de indicadores");
+      return INIT_FAILED;
+   }
+
+   Print("STRAT_001 inicializado. EMA(", InpEmaFastPeriod, ",", InpEmaSlowPeriod,
+         ") ADX(", InpAdxPeriod, ">", InpAdxThreshold, ") Sesión: ", InpSessionStart, "-", InpSessionEnd, "UTC");
    return INIT_SUCCEEDED;
 }
 
 //+------------------------------------------------------------------+
-//|  GetStrategySignal(): calcula la señal de la estrategia         |
-//|  Devuelve: +1 = compra, -1 = venta, 0 = sin señal              |
+//|  IsSessionActive: verifica si la hora está en sesión europea    |
+//+------------------------------------------------------------------+
+bool IsSessionActive()
+{
+   MqlDateTime dt;
+   TimeToStruct(TimeCurrent(), dt);
+   // Usar hora de la barra actual (no TimeCurrent)
+   datetime barTime = iTime(_Symbol, PERIOD_H1, 0);
+   TimeToStruct(barTime, dt);
+
+   if(dt.hour >= InpSessionStart && dt.hour < InpSessionEnd)
+      return true;
+
+   return false;
+}
+
+//+------------------------------------------------------------------+
+//|  GetStrategySignal: calcula la señal de la estrategia           |
+|  Devuelve: +1 = compra, -1 = venta, 0 = sin señal              |
 //+------------------------------------------------------------------+
 int GetStrategySignal()
 {
-   // TODO: Implementar lógica de señales aquí
-   //
-   // Ejemplo:
-   //   double emaFast[], emaSlow[];
-   //   if(CopyBuffer(handleEmaFast, 0, 0, 3, emaFast) < 3) return 0;
-   //   if(CopyBuffer(handleEmaSlow, 0, 0, 3, emaSlow) < 3) return 0;
-   //
-   //   // Cruce alcista: emaFast cruza por encima de emaSlow
-   //   if(emaFast[1] > emaSlow[1] && emaFast[2] <= emaSlow[2]) return +1;
-   //   // Cruce bajista: emaFast cruza por debajo de emaSlow
-   //   if(emaFast[1] < emaSlow[1] && emaFast[2] >= emaSlow[2]) return -1;
+   //--- Verificar sesión europea
+   if(!IsSessionActive()) return 0;
 
-   return 0; // Neutral por defecto
+   //--- Obtener valores de indicadores (barra 1 = cerrada, barra 2 = anterior)
+   double emaFast[], emaSlow[], adxMain[];
+
+   if(CopyBuffer(handleEmaFast, 0, 0, 3, emaFast) < 3) return 0;
+   if(CopyBuffer(handleEmaSlow, 0, 0, 3, emaSlow) < 3) return 0;
+   if(CopyBuffer(handleAdx, 0, 0, 2, adxMain) < 2) return 0;
+
+   //--- Filtro ADX: tendencia activa
+   if(adxMain[1] <= InpAdxThreshold) return 0;
+
+   //--- Cruce alcista: EMA rápida cruza por encima de EMA lenta
+   if(emaFast[1] > emaSlow[1] && emaFast[2] <= emaSlow[2])
+      return +1;
+
+   //--- Cruce bajista: EMA rápida cruza por debajo de EMA lenta
+   if(emaFast[1] < emaSlow[1] && emaFast[2] >= emaSlow[2])
+      return -1;
+
+   return 0; // Sin señal
 }
 
 //+------------------------------------------------------------------+

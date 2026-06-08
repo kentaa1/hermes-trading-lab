@@ -33,11 +33,26 @@
 
 ## Costes de Transacción
 
-| Concepto | Valor |
-|---|---|
-| **Comisiones** | [PENDIENTE — definir broker] |
-| **Swap long** | [PENDIENTE — verificar con broker] |
-| **Swap short** | [PENDIENTE — verificar con broker] |
+| Concepto | Valor | Notas |
+|---|---|---|
+| **Tipo de cuenta** | Raw Spread / Zero (recomendado para backtest) | Spreads más bajos, comisión por lote |
+| **Spread EURUSD (típico)** | 0.0 – 0.3 pips (Raw) / 0.6 – 1.2 pips (Standard) | Variable según sesión |
+| **Spread EURUSD (máximo histórico)** | 3-5 pips en eventos de alta volatilidad | NFP, FOMC, BCE |
+| **Comisión (Raw Spread)** | ~$3.5 USD por lote por lado ($7 round-trip) | Solo en cuenta Raw |
+| **Swap long EURUSD** | Negativo (varía ~-0.5 a -2.0 pips/día) | Verificar con broker |
+| **Swap short EURUSD** | Positivo o negativo (según diferencial de tasas) | Verificar con broker |
+| **Slippage esperado** | 0.1 – 0.5 pips (normal), hasta 2-3 pips (noticias) | Backtest debe incluir al menos 0.3 pips |
+| **Requisito de margen** | 1:20 a 1:2000 (varía por cuenta) | Para backtest con 10K, suficiente |
+
+## Datos por Sesión (Exness Raw Spread)
+
+| Sesión | Hora UTC | Spread típico EURUSD | Características |
+|---|---|---|---|
+| **Asia (Tokio)** | 00:00 – 08:00 | 0.3 – 0.8 pips | Menor liquidez, spread más amplio |
+| **Europa (Londres)** | 07:00 – 16:00 | 0.0 – 0.3 pips | Máxima liquidez, spread mínimo |
+| **Nueva York** | 12:00 – 21:00 | 0.0 – 0.4 pips | Alta liquidez, overlap con Londres |
+| **Overlap EU/US** | 12:00 – 16:00 | 0.0 – 0.2 pips | Mejor ejecución del día |
+| **Pre/Post mercado** | 21:00 – 00:00 | 0.5 – 1.5 pips | Menor liquidez |
 
 ## Sesiones de Mercado (UTC)
 
