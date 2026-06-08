@@ -72,6 +72,9 @@ bool HasOpenPosition()
    return false;
 }
 
+//--- Capital fijo para Fase 1 (sin compounding)
+input double InpFixedCapital = 10000.0; // Capital fijo de referencia (USD)
+
 //--- CalcLotSize(): calcula el tamaño de lote según riesgo % y SL en puntos
 double CalcLotSize(double slPoints)
 {
@@ -79,8 +82,7 @@ double CalcLotSize(double slPoints)
 
    double tickValue = symInfo.TickValue();
    double tickSize  = symInfo.TickSize();
-   double balance   = AccountInfoDouble(ACCOUNT_BALANCE);
-   double riskMoney = balance * InpRiskPct / 100.0;
+   double riskMoney = InpFixedCapital * InpRiskPct / 100.0;
    double lotSize   = riskMoney / (slPoints * tickValue);
    double minLot    = symInfo.LotsMin();
    double maxLot    = symInfo.LotsMax();
@@ -112,6 +114,13 @@ int OnInit()
    symInfo.Refresh();
 
    lastBarTime = 0;
+
+   //--- Inicializar indicadores del bloque editable
+   if(OnStrategyInit() != INIT_SUCCEEDED)
+   {
+      Print("ERROR: fallo al inicializar indicadores de estrategia");
+      return INIT_FAILED;
+   }
 
    Print("HermesBase_Template v1.00 inicializado. Magic=", InpMagic,
          " Risk=", InpRiskPct, "% SL=", InpStopLoss, " TP=", InpTakeProfit);
