@@ -252,7 +252,8 @@ int OnStrategyInit()
 bool IsSessionActive()
 {
    MqlDateTime dt;
-   datetime barTime = iTime(_Symbol, PERIOD_H1, 0);
+   // Usar la barra recién cerrada (índice 1), no la actual (índice 0)
+   datetime barTime = iTime(_Symbol, PERIOD_H1, 1);
    TimeToStruct(barTime, dt);
 
    if(dt.hour >= InpSessionStart && dt.hour < InpSessionEnd)
