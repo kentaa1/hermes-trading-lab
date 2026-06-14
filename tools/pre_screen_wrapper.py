@@ -57,6 +57,7 @@ def update_hypothesis_docstring(signal_path: str, data: Dict[str, Any]) -> None:
     # Use _extract_yaml_from_docstring to get clean YAML
     yaml_str = _extract_yaml_from_docstring(path)
     existing = yaml.safe_load(yaml_str) or {}
+    existing = _to_native(existing)
     existing.update({
         'dataset_used': data.get('dataset_used'),
         'vectorbt_result': data.get('vectorbt_result'),
@@ -113,6 +114,17 @@ def _write_log(hypothesis_id: str, entry: Dict[str, Any]) -> None:
     log_path.write_text(json.dumps(entry, indent=2, cls=NumpyEncoder), encoding="utf-8")
 
 
+def _to_native(obj):
+    if isinstance(obj, (np.integer,)):
+        return int(obj)
+    if isinstance(obj, (np.floating,)):
+        return float(obj)
+    if isinstance(obj, dict):
+        return {k: _to_native(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_to_native(v) for v in obj]
+    return obj
+
 def _update_docs_and_log(signal_path, hypothesis_id, symbol, start_date, end_date, commit_hash, result):
     update_data = {
         "dataset_used": f"{symbol}:{start_date}-{end_date}",
@@ -123,6 +135,7 @@ def _update_docs_and_log(signal_path, hypothesis_id, symbol, start_date, end_dat
         },
         "code_commit_hash": commit_hash,
     }
+    update_data = _to_native(update_data)
     update_hypothesis_docstring(str(signal_path), update_data)
     hypothesis_dir = Path("hypotheses") / hypothesis_id
     md_update = {
