@@ -1,129 +1,99 @@
 //+------------------------------------------------------------------+
 //|                                          ImportCSVToMT5.mq5     |
-//|                          Hermes-Trading-Lab — Importador CSV    |
-//|                          Importa barras M1 desde CSV a MT5      |
+//|                          Hermes-Trading-Lab — Importador CSV v3 |
 //+------------------------------------------------------------------+
 #property copyright "Hermes-Trading-Lab"
-#property link      ""
-#property version   "1.00"
+#property version   "3.00"
 #property strict
-//+------------------------------------------------------------------+
-//| Parámetros de entrada                                            |
-//+------------------------------------------------------------------+
-input string InpCsvFile      = "EURUSD_M1_201501020900_202606082251.csv"; // Archivo CSV en MQL5/Files/
-input string InpSymbol       = "EURUSD";   // Símbolo destino
-input int    InpTimeShift    = 0;          // Shift de tiempo en segundos (ajuste zona horaria)
+#property description "Importa barras M1 desde CSV tab-separated a historial de MT5"
+#property script_show_inputs
 
-//+------------------------------------------------------------------+
-//| Script principal                                                 |
-//+------------------------------------------------------------------+
+input string InpCsvFile = "EURUSD_M1_201501020900_202606082251.csv";
+input string InpSymbol  = "EURUSD";
+
 void OnStart()
 {
-   string filepath = InpCsvFile;
+   Print("=== ImportCSVToMT5 v3.00 ===");
    
-   Print("=== ImportCSVToMT5 v1.00 ===");
-   Print("Archivo: ", filepath);
-   Print("Símbolo: ", InpSymbol);
-   
-   int fileHandle = FileOpen(filepath, FILE_READ|FILE_CSV|FILE_ANSI, '\t');
-   if(fileHandle == INVALID_HANDLE)
+   if(!SymbolInfoInteger(InpSymbol, SYMBOL_EXIST))
    {
-      Print("ERROR: No se pudo abrir el archivo CSV. Error: ", GetLastError());
-      Print("Asegúrate de copiar el CSV a: <MT5>/MQL5/Files/");
+      Print("ERROR: ", InpSymbol, " no existe en Market Watch.");
       return;
    }
+   Print("Simbolo OK: ", InpSymbol);
    
-   // Leer header
-   string header = FileReadString(fileHandle);
-   Print("Header: ", header);
+   int fh = FileOpen(InpCsvFile, FILE_READ|FILE_CSV|FILE_ANSI, '\t');
+   if(fh == INVALID_HANDLE)
+   {
+      Print("ERROR: No se pudo abrir ", InpCsvFile, " Error: ", GetLastError());
+      return;
+   }
+   Print("Archivo abierto: ", InpCsvFile);
    
-   // Contadores
+   // Descartar header
+   if(!FileIsEnding(fh))
+      FileReadString(fh);
+   
    int totalRead = 0;
    int totalImported = 0;
-   int batchSize = 50000;
-   
-   // Array para批量 import
+   int count = 0;
    MqlRates rates[];
-   ArrayResize(rates, 0);
    
-   datetime lastBarTime = 0;
-   
-   while(!FileIsEnding(fileHandle))
+   while(!FileIsEnding(fh))
    {
-      // Leer línea
-      string dateStr = FileReadString(fileHandle);
-      if(dateStr == "" || dateStr == "<DATE>") continue;
+      string sDate = FileReadString(fh);
+      if(sDate == "" || sDate == "<DATE>") continue;
+      string sTime  = FileReadString(fh);
+      string sOpen  = FileReadString(fh);
+      string sHigh  = FileReadString(fh);
+      string sLow   = FileReadString(fh);
+      string sClose = FileReadString(fh);
+      string sTVol  = FileReadString(fh);
+      string sVol   = FileReadString(fh);
+      string sSprd  = FileReadString(fh);
       
-      string timeStr = FileReadString(fileHandle);
-      string openStr = FileReadString(fileHandle);
-      string highStr = FileReadString(fileHandle);
-      string lowStr  = FileReadString(fileHandle);
-      string closeStr = FileReadString(fileHandle);
-      string tickVolStr = FileReadString(fileHandle);
-      string volStr = FileReadString(fileHandle);
-      string spreadStr = FileReadString(fileHandle);
+      datetime t = StringToTime(sDate + " " + sTime);
+      if(t <= 0) continue;
       
-      // Parsear fecha y hora
-      datetime barTime = StringToTime(dateStr + " " + timeStr);
-      if(barTime <= 0) continue;
+      double o = StringToDouble(sOpen);
+      double h = StringToDouble(sHigh);
+      double l = StringToDouble(sLow);
+      double c = StringToDouble(sClose);
+      if(o <= 0 || h <= 0 || l <= 0 || c <= 0) continue;
+      if(h < l) continue;
       
-      // Evitar duplicados
-      if(barTime <= lastBarTime) continue;
-      
-      double open  = StringToDouble(openStr);
-      double high  = StringToDouble(highStr);
-      double low   = StringToDouble(lowStr);
-      double close = StringToDouble(closeStr);
-      long   tickVol = StringToInteger(tickVolStr);
-      long   vol = StringToInteger(volStr);
-      int    spread = (int)StringToInteger(spreadStr);
-      
-      // Validar datos
-      if(open <= 0 || high <= 0 || low <= 0 || close <= 0) continue;
-      if(high < low) continue;
-      
-      // Agregar al array
-      int size = ArraySize(rates);
-      ArrayResize(rates, size + 1);
-      
-      rates[size].time = barTime;
-      rates[size].open = open;
-      rates[size].high = high;
-      rates[size].low = low;
-      rates[size].close = close;
-      rates[size].tick_volume = tickVol;
-      rates[size].real_volume = vol;
-      rates[size].spread = spread;
-      
+      ArrayResize(rates, count + 1);
+      rates[count].time = t;
+      rates[count].open = o;
+      rates[count].high = h;
+      rates[count].low = l;
+      rates[count].close = c;
+      rates[count].tick_volume = (long)StringToInteger(sTVol);
+      rates[count].real_volume  = (long)StringToInteger(sVol);
+      rates[count].spread = (int)StringToInteger(sSprd);
+      count++;
       totalRead++;
-      lastBarTime = barTime;
       
-      // Importar en lotes
-      if(ArraySize(rates) >= batchSize)
+      // Importar en lotes de 5000
+      if(count >= 5000)
       {
-         int imported = CustomRatesUpdate(InpSymbol, rates);
-         if(imported > 0)
-            totalImported += imported;
-         
+         CustomRatesUpdate(InpSymbol, rates);
+         totalImported += count;
+         count = 0;
          ArrayResize(rates, 0);
-         
-         if(totalImported % 100000 == 0)
-            Print("Importados: ", totalImported, " barras...");
+         Print("  Progreso: ", totalImported, " importadas / ", totalRead, " leidas");
       }
    }
    
    // Importar resto
-   if(ArraySize(rates) > 0)
+   if(count > 0)
    {
-      int imported = CustomRatesUpdate(InpSymbol, rates);
-      if(imported > 0)
-         totalImported += imported;
+      CustomRatesUpdate(InpSymbol, rates);
+      totalImported += count;
    }
    
-   FileClose(fileHandle);
+   FileClose(fh);
    
-   Print("=== Importación completada ===");
-   Print("Barras leídas:    ", totalRead);
-   Print("Barras importadas: ", totalImported);
+   Print("=== Resultado ===");
+   Print("Leidas: ", totalRead, " | Importadas: ", totalImported);
 }
-//+------------------------------------------------------------------+
