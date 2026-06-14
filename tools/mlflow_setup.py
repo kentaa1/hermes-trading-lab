@@ -8,6 +8,7 @@ Corrección bug: referencia a MLFLOW_DIR eliminada (ahora usa paths relativos).
 
 import os
 import sys
+import time
 from pathlib import Path
 import mlflow
 
@@ -41,15 +42,68 @@ def setup_mlflow():
     else:
         print(f"✅ Experimento '{MLFLOW_EXPERIMENT}' ya existe (ID: {experiment.experiment_id})")
     
-    # Verificar conexión
+    # Crear cliente antes de las verificaciones
     mlflow.set_experiment(MLFLOW_EXPERIMENT)
     client = mlflow.tracking.MlflowClient()
-    runs = client.search_runs(experiment_ids=[experiment.experiment_id])
     
-    print(f"✅ MLflow configurado correctamente")
+    # ═══════════════════════════════════════════════════════════════════
+    # VERIFICACIÓN 1: Recuperación en sesión
+    # ═══════════════════════════════════════════════════════════════════
+    print("\n[VERIFICACIÓN 1] Recuperación en sesión...")
+    test_run_name = f"MLFLOW_VERIFY_{int(time.time())}"
+    with mlflow.start_run(run_name=test_run_name) as run:
+        mlflow.log_param("test", "session_recovery")
+        mlflow.log_metric("verify", 1.0)
+        run_id = run.info.run_id
+    
+    # Verificar que el run existe en la misma sesión
+    recovered = client.get_run(run_id)
+    assert recovered is not None, "Run no recuperado en sesión"
+    assert recovered.data.params["test"] == "session_recovery", "Param no coincide"
+    print(f"  ✅ Run creado y recuperado: {run_id[:12]}...")
+
+    # ═══════════════════════════════════════════════════════════════════
+    # VERIFICACIÓN 2: Persistencia tras restart simulado
+    # ═══════════════════════════════════════════════════════════════════
+    print("\n[VERIFICACIÓN 2] Persistencia tras restart simulado...")
+    # Simular restart: nuevo cliente, misma DB
+    mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+    mlflow.set_experiment(MLFLOW_EXPERIMENT)
+    client2 = mlflow.tracking.MlflowClient()
+    
+    # Recuperar el run creado anteriormente
+    persisted = client2.get_run(run_id)
+    assert persisted is not None, "Run no persistió tras restart"
+    assert persisted.data.metrics["verify"] == 1.0, "Metric no persistió"
+    print(f"  ✅ Run persiste tras restart: {run_id[:12]}...")
+
+    # ═══════════════════════════════════════════════════════════════════
+    # VERIFICACIÓN 3: Búsqueda por tag
+    # ═══════════════════════════════════════════════════════════════════
+    print("\n[VERIFICACIÓN 3] Búsqueda por tag...")
+    # Agregar tag al run
+    client.set_tag(run_id, "verification", "mlflow_setup")
+    client.set_tag(run_id, "type", "infrastructure_test")
+    
+    # Buscar por tag
+    results = client.search_runs(
+        experiment_ids=[experiment.experiment_id],
+        filter_string="tags.verification = 'mlflow_setup'"
+    )
+    assert len(results) >= 1, "Búsqueda por tag no retornó resultados"
+    assert results[0].info.run_id == run_id, "Run encontrado no coincide"
+    print(f"  ✅ Búsqueda por tag funciona: {len(results)} run(s) encontrado(s)")
+
+    # ═══════════════════════════════════════════════════════════════════
+    # RESUMEN
+    # ═══════════════════════════════════════════════════════════════════
+    print(f"\n{'=' * 60}")
+    print(f"✅ MLflow verificado correctamente")
     print(f"   Tracking URI: {MLFLOW_TRACKING_URI}")
-    print(f"   Experimento: {MLFLOW_EXPERIMENT}")
-    print(f"   Runs existentes: {len(runs)}")
+    print(f"   Experimento: {MLFLOW_EXPERIMENT} (ID: {experiment.experiment_id})")
+    print(f"   Runs existentes: {len(client.search_runs(experiment_ids=[experiment.experiment_id]))}")
+    print(f"   Verificaciones: 3/3 PASS")
+    print(f"{'=' * 60}")
     
     return True
 
