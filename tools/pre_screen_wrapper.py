@@ -30,8 +30,10 @@ def _extract_yaml_from_docstring(file_path: Path) -> str:
     """Return the YAML block delimited by ``---`` lines in a file's top‑level docstring.
 
     The function reads the entire file, finds the first ``---`` line and the next
-    ``---`` line and returns the raw YAML string between them.
+    ``---`` line and returns the raw YAML string between them, removing common indentation.
     """
+    import textwrap
+    from itertools import chain
     content = file_path.read_text(encoding="utf-8")
     start = content.find("---")
     if start == -1:
@@ -40,7 +42,17 @@ def _extract_yaml_from_docstring(file_path: Path) -> str:
     if end == -1:
         raise ValueError(f"No ending yaml delimiter found in {file_path}")
     yaml_block = content[start + 3 : end].strip()
-    return yaml_block
+    lines = yaml_block.split('\n')
+    # Compute minimum indentation ignoring the first line
+    if len(lines) > 1:
+        non_empty_rest = [l for l in lines[1:] if l.strip()]
+        if non_empty_rest:
+            min_indent = min(len(l) - len(l.lstrip()) for l in non_empty_rest)
+            if min_indent > 0:
+                # Remove min_indent spaces from each line (except first line)
+                lines = [lines[0]] + [l[min_indent:] if l.startswith(' ' * min_indent) else l for l in lines[1:]]
+    yaml_block = "\n".join(lines)
+    return yaml_block.strip()
 
 
 def parse_hypothesis_docstring(signal_path: str) -> Dict[str, Any]:
