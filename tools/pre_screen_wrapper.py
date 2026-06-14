@@ -80,6 +80,7 @@ def update_hypothesis_md(hypothesis_dir: str, data: Dict[str, Any]) -> None:
     yaml_block = text[start + 3 : end].strip()
     existing = yaml.safe_load(yaml_block) or {}
     existing.update(data)
+    existing = _to_native(existing)
     new_yaml = yaml.safe_dump(existing, sort_keys=False)
     new_text = text[: start + 3] + "\n" + new_yaml + "\n" + text[end:]
     md_path.write_text(new_text, encoding="utf-8")
