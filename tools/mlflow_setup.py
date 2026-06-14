@@ -35,8 +35,9 @@ def setup_mlflow():
     # Crear experimento si no existe
     experiment = mlflow.get_experiment_by_name(MLFLOW_EXPERIMENT)
     if experiment is None:
-        mlflow.create_experiment(MLFLOW_EXPERIMENT)
-        print(f"✅ Experimento '{MLFLOW_EXPERIMENT}' creado")
+        exp_id = mlflow.create_experiment(MLFLOW_EXPERIMENT)
+        print(f"✅ Experimento '{MLFLOW_EXPERIMENT}' creado (ID: {exp_id})")
+        experiment = mlflow.get_experiment(exp_id)
     else:
         print(f"✅ Experimento '{MLFLOW_EXPERIMENT}' ya existe (ID: {experiment.experiment_id})")
     
