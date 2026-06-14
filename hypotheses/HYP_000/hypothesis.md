@@ -11,8 +11,13 @@ parameters:
 dataset_used: PENDING
 vectorbt_result: PENDING
 code_commit_hash: PENDING
-notes: Hipótesis de infraestructura. Señales aleatorias para validar wrapper.
+notes: "Hip\xF3tesis de infraestructura. Se\xF1ales aleatorias para validar wrapper."
 additional_dependencies: []
+pf: .inf
+dd: 0.0
+trades: 0
+status: 'Insufficient trades: 0 < 30'
+
 ---
 
 # HYP_000 — Infraestructura TEST

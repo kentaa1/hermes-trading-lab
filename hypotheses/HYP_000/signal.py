@@ -29,7 +29,7 @@ vectorbt_result:
   pf: .inf
   dd: 0.0
   trades: 0
-code_commit_hash: 871de3a2b64ba1312f5cf832870463e196519ba4
+code_commit_hash: c8b218ad05698fe1438116d1781fb62cac9575cc
 notes: "Hip\xF3tesis de infraestructura. Se\xF1ales aleatorias para validar wrapper."
 additional_dependencies: []
 

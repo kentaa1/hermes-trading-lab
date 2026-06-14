@@ -1,7 +1,7 @@
 {
   "hypothesis_id": "HYP_000",
-  "timestamp": "2026-06-14T07:00:19.325230+00:00",
-  "git_hash": "387d945a4ee370da4e6faba7ff1b97b23df824d2",
+  "timestamp": "2026-06-14T07:21:41.317099+00:00",
+  "git_hash": "c8b218ad05698fe1438116d1781fb62cac9575cc",
   "result": "rejected",
   "reason": "Insufficient trades: 0 < 30",
   "metrics": {
