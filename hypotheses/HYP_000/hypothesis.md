@@ -1,10 +1,4 @@
-# HYP_000 — Infraestructura TEST
-
-## Descripción
-Hipótesis de infraestructura con señales aleatorias para validar el wrapper de pre-screening. No es una estrategia real.
-
-## Metadato
-```yaml
+---
 hypothesis_id: HYP_000
 symbol: EURUSD
 timeframe: H1
@@ -17,9 +11,14 @@ parameters:
 dataset_used: PENDING
 vectorbt_result: PENDING
 code_commit_hash: PENDING
-notes: "Hipótesis de infraestructura. Señales aleatorias para validar wrapper."
+notes: Hipótesis de infraestructura. Señales aleatorias para validar wrapper.
 additional_dependencies: []
-```
+---
+
+# HYP_000 — Infraestructura TEST
+
+## Descripción
+Hipótesis de infraestructura con señales aleatorias para validar el wrapper de pre-screening. No es una estrategia real.
 
 ## Estado
 - [ ] Wrapper ejecutado
