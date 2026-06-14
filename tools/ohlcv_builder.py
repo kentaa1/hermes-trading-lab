@@ -36,44 +36,39 @@ def build_ohlcv_h1(
     """
     
     query = f"""
-        WITH ticks AS (
+        WITH ranked AS (
             SELECT 
-                timestamp,
+                date_trunc('hour', timestamp) as hour,
                 (bid + ask) / 2.0 as mid_price,
-                bid_vol,
-                ask_vol
+                bid_vol + ask_vol as vol,
+                ROW_NUMBER() OVER (PARTITION BY date_trunc('hour', timestamp) ORDER BY timestamp ASC) as rn_asc,
+                ROW_NUMBER() OVER (PARTITION BY date_trunc('hour', timestamp) ORDER BY timestamp DESC) as rn_desc
             FROM ticks
             WHERE symbol = '{symbol}'
             AND timestamp >= '{start_date}'::TIMESTAMPTZ
             AND timestamp <= '{end_date}'::TIMESTAMPTZ
             AND bid > 0 AND ask > 0 AND ask >= bid
         ),
-        ohlcv AS (
-            SELECT 
-                date_trunc('hour', timestamp) as hour,
-                FIRST_VALUE(mid_price) OVER (
-                    PARTITION BY date_trunc('hour', timestamp) 
-                    ORDER BY timestamp
-                ) as open,
-                MAX(mid_price) as high,
-                MIN(mid_price) as low,
-                LAST_VALUE(mid_price) OVER (
-                    PARTITION BY date_trunc('hour', timestamp) 
-                    ORDER BY timestamp
-                    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
-                ) as close,
-                SUM(bid_vol + ask_vol) as volume
-            FROM ticks
+        first_last AS (
+            SELECT hour, mid_price as open_price
+            FROM ranked WHERE rn_asc = 1
+        ),
+        last_vals AS (
+            SELECT hour, mid_price as close_price
+            FROM ranked WHERE rn_desc = 1
         )
-        SELECT DISTINCT
-            hour as timestamp,
-            open,
-            high,
-            low,
-            close,
-            volume
-        FROM ohlcv
-        ORDER BY hour
+        SELECT 
+            r.hour as timestamp,
+            f.open_price as open,
+            MAX(r.mid_price) as high,
+            MIN(r.mid_price) as low,
+            l.close_price as close,
+            SUM(r.vol) as volume
+        FROM ranked r
+        JOIN first_last f ON r.hour = f.hour
+        JOIN last_vals l ON r.hour = l.hour
+        GROUP BY r.hour, f.open_price, l.close_price
+        ORDER BY r.hour
     """
     
     df = conn.sql(query).fetchdf()
