@@ -49,21 +49,22 @@ def parse_hypothesis_docstring(signal_path: str) -> Dict[str, Any]:
 
 def update_hypothesis_docstring(signal_path: str, data: Dict[str, Any]) -> None:
     path = Path(signal_path)
-    text = path.read_text(encoding="utf-8")
-    start = text.find("---")
-    end = text.find("---", start + 3)
+    text = path.read_text(encoding='utf-8')
+    start = text.find('---')
+    end = text.find('---', start + 3)
     if start == -1 or end == -1:
-        raise ValueError("YAML delimiters not found in hypothesis file.")
-    yaml_block = text[start + 3 : end].strip()
-    existing = yaml.safe_load(yaml_block) or {}
+        raise ValueError('YAML delimiters not found in hypothesis file.')
+    # Use _extract_yaml_from_docstring to get clean YAML
+    yaml_str = _extract_yaml_from_docstring(path)
+    existing = yaml.safe_load(yaml_str) or {}
     existing.update({
-        "dataset_used": data.get("dataset_used"),
-        "vectorbt_result": data.get("vectorbt_result"),
-        "code_commit_hash": data.get("code_commit_hash"),
+        'dataset_used': data.get('dataset_used'),
+        'vectorbt_result': data.get('vectorbt_result'),
+        'code_commit_hash': data.get('code_commit_hash'),
     })
     new_yaml = yaml.safe_dump(existing, sort_keys=False)
     new_text = text[: start + 3] + "\n" + new_yaml + "\n" + text[end:]
-    path.write_text(new_text, encoding="utf-8")
+    path.write_text(new_text, encoding='utf-8')
 
 
 def update_hypothesis_md(hypothesis_dir: str, data: Dict[str, Any]) -> None:
