@@ -38,7 +38,26 @@ def parse_hypothesis_docstring(signal_path: str) -> Dict[str, Any]:
 
 
 def update_hypothesis_docstring(signal_path: str, data: Dict[str, Any]) -> None:
-    update_yaml_docstring(signal_path, data)
+    from tools.yaml_doc_manager import _find_docstring_yaml_block
+    path = Path(signal_path)
+    source = path.read_text(encoding="utf-8")
+    result = _find_docstring_yaml_block(source)
+    if result is None:
+        raise ValueError(f"No se encontro bloque YAML docstring en {signal_path}")
+    start, end, indent, yaml_text = result
+    existing = yaml.safe_load(yaml_text) or {}
+    existing = to_native(existing)
+    existing.update({
+        'dataset_used': data.get('dataset_used'),
+        'vectorbt_result': data.get('vectorbt_result'),
+        'code_commit_hash': data.get('code_commit_hash'),
+    })
+    new_yaml = yaml.safe_dump(existing, sort_keys=False, allow_unicode=True)
+    indent_str = " " * indent
+    indented = "\n".join(indent_str + line for line in new_yaml.split("\n"))
+    new_block = "---\n" + indented + "\n" + indent_str + "---"
+    new_text = source[:start] + new_block + source[end:]
+    path.write_text(new_text, encoding="utf-8")
 
 
 def update_hypothesis_md(hypothesis_dir: str, data: Dict[str, Any]) -> None:
