@@ -28,14 +28,18 @@ def generate_signals(ohlcv: pd.DataFrame) -> tuple[pd.Series, pd.Series]:
       session_start: 7
       session_end: 15
       session_timezone: UTC
-    dataset_used: PENDING
-    vectorbt_result: PENDING
-    code_commit_hash: PENDING
-    notes: "Implementación completa de STRAT_001. Agrega filtro de sesión 07:00-15:00 UTC omitido en HYP_001. Parámetros EMA y ADX sin cambios. Resultado comparado contra HYP_001 permite aislar el efecto del filtro de sesión del efecto de régimen 2015-2017."
+    dataset_used: EURUSD:2015-01-01-2017-12-31
+    vectorbt_result:
+      pf: 0.20313516872027357
+      dd: 0.03217642521992825
+      trades: 8
+    code_commit_hash: 58d7a9b8d03287e72f7afa5fa74ccaa0a2dad3f6
+    notes: Implementación completa de STRAT_001. Agrega filtro de sesión 07:00-15:00 UTC
+      omitido en HYP_001. Parámetros EMA y ADX sin cambios. Resultado comparado contra
+      HYP_001 permite aislar el efecto del filtro de sesión del efecto de régimen 2015-2017.
     additional_dependencies:
     - ta
-    ---
-    """
+    ---    """
     ema_fast = ohlcv['close'].ewm(span=12, adjust=False).mean()
     ema_slow = ohlcv['close'].ewm(span=26, adjust=False).mean()
 

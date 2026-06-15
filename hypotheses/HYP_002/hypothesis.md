@@ -15,9 +15,16 @@ parameters:
 dataset_used: PENDING
 vectorbt_result: PENDING
 code_commit_hash: PENDING
-notes: "Implementación completa de STRAT_001. Agrega filtro de sesión 07:00-15:00 UTC omitido en HYP_001. Parámetros EMA y ADX sin cambios. Resultado comparado contra HYP_001 permite aislar el efecto del filtro de sesión del efecto de régimen 2015-2017."
+notes: "Implementaci\xF3n completa de STRAT_001. Agrega filtro de sesi\xF3n 07:00-15:00\
+  \ UTC omitido en HYP_001. Par\xE1metros EMA y ADX sin cambios. Resultado comparado\
+  \ contra HYP_001 permite aislar el efecto del filtro de sesi\xF3n del efecto de\
+  \ r\xE9gimen 2015-2017."
 additional_dependencies:
 - ta
+pf: 0.20313516872027357
+dd: 0.03217642521992825
+trades: 8
+status: 'Insufficient trades: 8 < 30'
 
 ---
 
