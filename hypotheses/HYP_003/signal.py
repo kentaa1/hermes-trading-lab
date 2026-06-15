@@ -38,7 +38,7 @@ def generate_signals(ohlcv: pd.DataFrame) -> tuple[pd.Series, pd.Series]:
       sl_trail: true
     additional_dependencies:
     - ta
-    --
+    ---
     """
 
     ema_fast = ohlcv['close'].ewm(span=12, adjust=False).mean()
