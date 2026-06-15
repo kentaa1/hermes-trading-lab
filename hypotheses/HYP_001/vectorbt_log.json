@@ -1,12 +1,19 @@
 {
   "hypothesis_id": "HYP_001",
-  "timestamp": "2026-06-15T04:35:33.087422+00:00",
-  "git_hash": "d2bfd67c8f8c7a25bd6705ca8611e0671fa8af8a",
+  "timestamp": "2026-06-15T04:48:50.186173+00:00",
+  "git_hash": "1b7005fc9df177546d9e652a41c7646c5b4f6bb3",
   "result": "rejected",
-  "reason": "Insufficient trades: 19 < 30",
+  "reason": "failed thresholds",
   "metrics": {
-    "trades": 19,
-    "pf": 0.8095194925409115,
-    "dd": 0.01919670298977627
-  }
+    "pf": 0.28625024715036657,
+    "dd": 0.12243367719779064,
+    "trades": 54
+  },
+  "cost_applied": 0.0001793141747733155,
+  "data_range": {
+    "start": "2015-01-01",
+    "end": "2017-12-31"
+  },
+  "total_bars": 18629,
+  "execution_time_seconds": 0.1
 }

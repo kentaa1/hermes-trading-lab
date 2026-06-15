@@ -24,17 +24,21 @@ def generate_signals(ohlcv: pd.DataFrame) -> tuple[pd.Series, pd.Series]:
       slow_ema: 26
       adx_period: 14
       adx_threshold: 25
-    dataset_used: Research_2020-01_2021-03_WRONG_PERIOD
+    dataset_used: EURUSD:2015-01-01-2017-12-31
     vectorbt_result:
-      pf: 0.8095194925409115
-      dd: 0.01919670298977627
-      trades: 19
-    code_commit_hash: d2bfd67c8f8c7a25bd6705ca8611e0671fa8af8a
-    notes: "EMA crossover + ADX filter strategy for trend following. NOTA: primer pre-screening ejecutado sobre Research 2020-01 a 2021-03 por error (debía ser Historical Stress 2007-2017). Resultado no válido para protocolo formal. Período Research contaminado para HYP_001: 2020-01 a 2021-03 (prescreening exposure). Research disponible para evaluación formal restringido a 2018-01 a 2019-12."
+      pf: 0.28625024715036657
+      dd: 0.12243367719779064
+      trades: 54
+    code_commit_hash: 1b7005fc9df177546d9e652a41c7646c5b4f6bb3
+    notes: 'EMA crossover + ADX filter strategy for trend following. NOTA: primer pre-screening
+      ejecutado sobre Research 2020-01 a 2021-03 por error (debía ser Historical Stress
+      2007-2017). Resultado no válido para protocolo formal. Período Research contaminado
+      para HYP_001: 2020-01 a 2021-03 (prescreening exposure). Research disponible para
+      evaluación formal restringido a 2018-01 a 2019-12.'
     contaminated_range: 2020-01_2021-03_prescreening_exposure
     additional_dependencies:
     - ta
-    ---    """
+    ---""
 
     ema_fast = ohlcv['close'].ewm(span=12, adjust=False).mean()
     ema_slow = ohlcv['close'].ewm(span=26, adjust=False).mean()
