@@ -109,12 +109,18 @@ def _update_docs_and_log(signal_path, hypothesis_id, symbol, start_date, end_dat
     }
     update_hypothesis_md(str(hypothesis_dir), md_update)
     _write_log(hypothesis_id, result)
+    metrics = result.get("metrics", {})
     print(json.dumps({
         "hypothesis_id": hypothesis_id,
         "result": result["result"],
-        "pf": result.get("metrics", {}).get("pf"),
-        "dd": result.get("metrics", {}).get("dd"),
-        "trades": result.get("metrics", {}).get("trades"),
+        "pf": metrics.get("pf"),
+        "dd": metrics.get("dd"),
+        "trades": metrics.get("trades"),
+        "win_rate": metrics.get("win_rate"),
+        "avg_win": metrics.get("avg_win"),
+        "avg_loss": metrics.get("avg_loss"),
+        "largest_win": metrics.get("largest_win"),
+        "largest_loss": metrics.get("largest_loss"),
     }, indent=2, cls=NumpyEncoder))
 
 
@@ -203,6 +209,15 @@ def run_pre_screen(hypothesis_id: str, symbol: str, start_date: str, end_date: s
     dd = abs(portfolio.max_drawdown())
     trades = portfolio.trades.count()
 
+    # --- Detailed trade metrics ---
+    winning_count = portfolio.trades.winning.count()
+    losing_count = portfolio.trades.losing.count()
+    win_rate = winning_count / trades if trades > 0 else 0.0
+    avg_win = float(portfolio.trades.winning.pnl.mean()) if winning_count > 0 else 0.0
+    avg_loss = float(portfolio.trades.losing.pnl.mean()) if losing_count > 0 else 0.0
+    largest_win = float(portfolio.trades.winning.pnl.max()) if winning_count > 0 else 0.0
+    largest_loss = float(portfolio.trades.losing.pnl.min()) if losing_count > 0 else 0.0
+
     # 12. Minimum trades
     if trades < MIN_TRADES:
         reason = f"Insufficient trades: {trades} < {MIN_TRADES}"
@@ -212,7 +227,7 @@ def run_pre_screen(hypothesis_id: str, symbol: str, start_date: str, end_date: s
             "git_hash": commit_hash,
             "result": "rejected",
             "reason": reason,
-            "metrics": {"trades": trades, "pf": float(pf), "dd": float(dd)},
+            "metrics": {"trades": trades, "pf": float(pf), "dd": float(dd), "win_rate": float(win_rate), "avg_win": float(avg_win), "avg_loss": float(avg_loss), "largest_win": float(largest_win), "largest_loss": float(largest_loss), "winning_trades": int(winning_count), "losing_trades": int(losing_count)},
         }
         _update_docs_and_log(signal_path, hypothesis_id, symbol, start_date, end_date, commit_hash, result)
         return result
@@ -228,7 +243,7 @@ def run_pre_screen(hypothesis_id: str, symbol: str, start_date: str, end_date: s
         "git_hash": commit_hash,
         "result": "accepted" if passed else "rejected",
         "reason": reason,
-        "metrics": {"pf": float(pf), "dd": float(dd), "trades": int(trades)},
+        "metrics": {"pf": float(pf), "dd": float(dd), "trades": int(trades), "win_rate": float(win_rate), "avg_win": float(avg_win), "avg_loss": float(avg_loss), "largest_win": float(largest_win), "largest_loss": float(largest_loss), "winning_trades": int(winning_count), "losing_trades": int(losing_count)},
         "cost_applied": cost,
         "data_range": {"start": start_date, "end": end_date},
         "total_bars": len(ohlcv),
