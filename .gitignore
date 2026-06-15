@@ -28,9 +28,8 @@ Thumbs.db
 *.db
 *.csv
 *.bi5
-*.ex5
+data/dukascopy-node/
 data/dukascopy/
-data/*.csv
 
 # MLflow
 mlflow/
@@ -47,3 +46,7 @@ compile_log_*.txt
 .env
 *.key
 *.pem
+
+# Test files
+smoke_test_*.py
+test_model*.py
