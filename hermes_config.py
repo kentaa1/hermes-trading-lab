@@ -43,6 +43,23 @@ DD_THRESHOLD = 0.40      # Drawdown máximo para PASS (40%)
 T_VECTORBTV = 300        # Timeout en segundos para vectorbt
 
 # ═══════════════════════════════════════════════════════════════════
+# FRONTERAS DE DATASETS (V-1)
+# ═══════════════════════════════════════════════════════════════════
+# El wrapper de pre-screening DEBE validar que el rango solicitado
+# cae dentro del período autorizado. Hard abort si incluye Research,
+# Validation, Lockbox o Additional holdout.
+
+DATASET_PRESCREENING_START = "2007-01-01"
+DATASET_PRESCREENING_END   = "2017-12-31"
+DATASET_RESEARCH_START     = "2018-01-01"
+DATASET_RESEARCH_END       = "2021-12-31"
+DATASET_VALIDATION_START   = "2022-01-01"
+DATASET_VALIDATION_END     = "2023-06-30"
+DATASET_LOCKBOX_START      = "2023-07-01"
+DATASET_LOCKBOX_END        = "2024-12-31"
+DATASET_HOLDOUT_START      = "2025-01-01"
+
+# ═══════════════════════════════════════════════════════════════════
 # DATASET PROVISIONAL (V-1)
 # ═══════════════════════════════════════════════════════════════════
 

@@ -19,6 +19,15 @@ from hermes_config import (
     DD_THRESHOLD,
     T_VECTORBTV,
     DUCKDB_PATH,
+    DATASET_PRESCREENING_START,
+    DATASET_PRESCREENING_END,
+    DATASET_RESEARCH_START,
+    DATASET_RESEARCH_END,
+    DATASET_VALIDATION_START,
+    DATASET_VALIDATION_END,
+    DATASET_LOCKBOX_START,
+    DATASET_LOCKBOX_END,
+    DATASET_HOLDOUT_START,
 )
 from tools.ohlcv_builder import build_ohlcv_h1
 from tools.yaml_doc_manager import extract_yaml_docstring, update_yaml_docstring, to_native
@@ -117,6 +126,21 @@ def run_pre_screen(hypothesis_id: str, symbol: str, start_date: str, end_date: s
 
     # 2. Commit hash
     commit_hash = repo.head.object.hexsha
+
+    # 2.5 VALIDACIÓN DE FRONTERAS DE DATASET
+    if not (DATASET_PRESCREENING_START <= start_date <= DATASET_PRESCREENING_END):
+        raise RuntimeError(
+            f"start_date {start_date} fuera del rango de pre-screening "
+            f"[{DATASET_PRESCREENING_START}, {DATASET_PRESCREENING_END}]. "
+            f"El wrapper no opera sobre Research, Validation, Lockbox ni Holdout."
+        )
+    if not (DATASET_PRESCREENING_START <= end_date <= DATASET_PRESCREENING_END):
+        raise RuntimeError(
+            f"end_date {end_date} fuera del rango de pre-screening "
+            f"[{DATASET_PRESCREENING_START}, {DATASET_PRESCREENING_END}]. "
+            f"Historical Stress disponible: {DATASET_PRESCREENING_START} a {DATASET_PRESCREENING_END}."
+        )
+    print(f"  ✓ Rango validado: {start_date} a {end_date} dentro de Historical Stress [{DATASET_PRESCREENING_START}, {DATASET_PRESCREENING_END}]")
 
     # 3. Parsear docstring YAML
     signal_path = Path("hypotheses") / hypothesis_id / "signal.py"
