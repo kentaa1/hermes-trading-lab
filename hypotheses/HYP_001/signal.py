@@ -38,7 +38,8 @@ def generate_signals(ohlcv: pd.DataFrame) -> tuple[pd.Series, pd.Series]:
     contaminated_range: 2020-01_2021-03_prescreening_exposure
     additional_dependencies:
     - ta
-    ---""
+    ---
+    """
 
     ema_fast = ohlcv['close'].ewm(span=12, adjust=False).mean()
     ema_slow = ohlcv['close'].ewm(span=26, adjust=False).mean()
