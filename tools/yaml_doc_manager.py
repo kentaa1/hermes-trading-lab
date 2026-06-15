@@ -83,13 +83,38 @@ def _find_docstring_yaml_block(source: str) -> tuple[int, int, int, str] | None:
             # Calcular start/end en source
             doc_start = match.start(1)
             lines_before_open = lines[:open_idx]
-            chars_before_open = sum(len(l) + 1 for l in lines_before_open)  # +1 por \n
+            chars_before_open = sum(len(l) + 1 for l in lines_before_open)
             start = doc_start + chars_before_open
 
             lines_before_close = lines[:close_idx + 1]
             chars_before_close = sum(len(l) + 1 for l in lines_before_close)
-            # Cerrar despues del ultimo '---' (incluye el final \n si existe)
             end = doc_start + chars_before_close
+
+            return (start, end, indent, yaml_text)
+
+        # Caso: solo hay --- de apertura (YAML al final del docstring)
+        if open_idx != -1 and close_idx == -1:
+            yaml_lines = []
+            for line in lines[open_idx + 1:]:
+                stripped = line.strip()
+                if not stripped:
+                    continue
+                if len(line) > indent:
+                    yaml_lines.append(line[indent:])
+                else:
+                    yaml_lines.append(line)
+            yaml_text = "\n".join(yaml_lines)
+            if not yaml_text.strip():
+                continue
+
+            # Calcular start/end en source
+            doc_start = match.start(1)
+            lines_before_open = lines[:open_idx]
+            chars_before_open = sum(len(l) + 1 for l in lines_before_open)
+            start = doc_start + chars_before_open
+
+            # El end es el final del docstring (antes del """)
+            end = match.end(1)
 
             return (start, end, indent, yaml_text)
 
