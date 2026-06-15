@@ -68,6 +68,16 @@ PROVISIONAL_SYMBOL = "EURUSD"
 PROVISIONAL_TIMEFRAME = "H1"
 
 # ═══════════════════════════════════════════════════════════════════
+# STOP CONFIG (HYP_000, HYP_001 sin stops por defecto)
+# ═══════════════════════════════════════════════════════════════════
+
+STOP_CONFIG_DEFAULT = None  # Sin stops por defecto (HYP_000, HYP_001)
+STOP_CONFIG_SESSION = {
+    'sl_stop': 0.005,    # 50 pips stop loss (fraccion de precio para EURUSD ~1.10)
+    'sl_trail': True,       # Activar trailing stop
+}
+
+# ═══════════════════════════════════════════════════════════════════
 # DUCKDB
 # ═══════════════════════════════════════════════════════════════════
 

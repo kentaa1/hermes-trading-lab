@@ -29,7 +29,7 @@ def generate_signals(ohlcv: pd.DataFrame) -> tuple[pd.Series, pd.Series]:
       pf: 0.28625024715036657
       dd: 0.12243367719779064
       trades: 54
-    code_commit_hash: 1b7005fc9df177546d9e652a41c7646c5b4f6bb3
+    code_commit_hash: e8c89cb9287a7372a99056650bda72270280019a
     notes: 'EMA crossover + ADX filter strategy for trend following. NOTA: primer pre-screening
       ejecutado sobre Research 2020-01 a 2021-03 por error (debía ser Historical Stress
       2007-2017). Resultado no válido para protocolo formal. Período Research contaminado
@@ -38,8 +38,7 @@ def generate_signals(ohlcv: pd.DataFrame) -> tuple[pd.Series, pd.Series]:
     contaminated_range: 2020-01_2021-03_prescreening_exposure
     additional_dependencies:
     - ta
-    ---
-    """
+    ---    """
 
     ema_fast = ohlcv['close'].ewm(span=12, adjust=False).mean()
     ema_slow = ohlcv['close'].ewm(span=26, adjust=False).mean()

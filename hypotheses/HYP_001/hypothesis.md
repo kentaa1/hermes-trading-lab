@@ -18,16 +18,27 @@ vectorbt_result:
   avg_win: PENDING
   avg_loss: PENDING
 code_commit_hash: 1b7005fc9df177546d9e652a41c7646c5b4f6bb3
-notes: "EMA crossover + ADX filter strategy for trend following. NOTA: primer pre-screening ejecutado sobre Research 2020-01 a 2021-03 por error (debía ser Historical Stress 2007-2017). Resultado no válido para protocolo formal. Período Research contaminado para HYP_001: 2020-01 a 2021-03 (prescreening exposure). Research disponible para evaluación formal restringido a 2018-01 a 2019-12."
+notes: "EMA crossover + ADX filter strategy for trend following. NOTA: primer pre-screening\
+  \ ejecutado sobre Research 2020-01 a 2021-03 por error (deb\xEDa ser Historical\
+  \ Stress 2007-2017). Resultado no v\xE1lido para protocolo formal. Per\xEDodo Research\
+  \ contaminado para HYP_001: 2020-01 a 2021-03 (prescreening exposure). Research\
+  \ disponible para evaluaci\xF3n formal restringido a 2018-01 a 2019-12."
 contaminated_range: 2020-01_2021-03_prescreening_exposure
 error_taxonomy:
   primary: implementation_deficiency
-  detail: "Filtro de sesión 07:00-15:00 UTC omitido en la implementación. Componente pre-especificado en STRAT_001 original."
+  detail: "Filtro de sesi\xF3n 07:00-15:00 UTC omitido en la implementaci\xF3n. Componente\
+    \ pre-especificado en STRAT_001 original."
   secondary: regime_mismatch_unconfirmed
-  secondary_detail: "2015-2017 adverso para trend-following en EURUSD H1. Contribución exacta no separable sin HYP_002 como control."
-  resolution: "HYP_002 implementa STRAT_001 completo. Diferencia en PF atribuible al filtro de sesión."
+  secondary_detail: "2015-2017 adverso para trend-following en EURUSD H1. Contribuci\xF3\
+    n exacta no separable sin HYP_002 como control."
+  resolution: "HYP_002 implementa STRAT_001 completo. Diferencia en PF atribuible\
+    \ al filtro de sesi\xF3n."
 additional_dependencies:
 - ta
+pf: 0.28625024715036657
+dd: 0.12243367719779064
+trades: 54
+status: failed thresholds
 
 ---
 

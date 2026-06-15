@@ -151,6 +151,7 @@ def run_pre_screen(hypothesis_id: str, symbol: str, start_date: str, end_date: s
     # 3. Parsear docstring YAML
     signal_path = Path("hypotheses") / hypothesis_id / "signal.py"
     yaml_data = parse_hypothesis_docstring(str(signal_path))
+    stop_config = yaml_data.get('stop_config')  # None si no esta presente
 
     # 4. DuckDB
     con = duckdb.connect(database=DUCKDB_PATH, read_only=False)
@@ -198,9 +199,21 @@ def run_pre_screen(hypothesis_id: str, symbol: str, start_date: str, end_date: s
     # 10. Portfolio vectorbt
     mean_price = ohlcv["close"].mean()
     cost = (PROVISIONAL_COST_PIPS * 0.0001) / mean_price
-    portfolio = vbt.Portfolio.from_signals(
-        close=ohlcv["close"], entries=entries, exits=exits, fees=cost, init_cash=10_000
+    portfolio_kwargs = dict(
+        close=ohlcv['close'], entries=entries, exits=exits,
+        fees=cost, init_cash=10_000
     )
+    if stop_config:
+        # sl_stop puede ser un numero (fraccion) o string "ATR"
+        sl_stop = stop_config.get('sl_stop', 0.0)
+        sl_trail = stop_config.get('sl_trail', True)
+        tp_stop = stop_config.get('tp_stop', 0.0)
+        if sl_stop > 0:
+            portfolio_kwargs['sl_stop'] = sl_stop
+            portfolio_kwargs['sl_trail'] = sl_trail
+        if tp_stop > 0:
+            portfolio_kwargs['tp_stop'] = tp_stop
+    portfolio = vbt.Portfolio.from_signals(**portfolio_kwargs)
 
     # 11. Métricas
     gross_profits = portfolio.trades.winning.pnl.sum()

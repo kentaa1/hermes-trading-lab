@@ -1,13 +1,20 @@
 {
   "hypothesis_id": "HYP_001",
-  "timestamp": "2026-06-15T04:48:50.186173+00:00",
-  "git_hash": "1b7005fc9df177546d9e652a41c7646c5b4f6bb3",
+  "timestamp": "2026-06-15T05:19:53.367223+00:00",
+  "git_hash": "e8c89cb9287a7372a99056650bda72270280019a",
   "result": "rejected",
   "reason": "failed thresholds",
   "metrics": {
     "pf": 0.28625024715036657,
     "dd": 0.12243367719779064,
-    "trades": 54
+    "trades": 54,
+    "win_rate": 0.2222222222222222,
+    "avg_win": 37.604638591402214,
+    "avg_loss": -37.534229443101424,
+    "largest_win": 72.76947183047503,
+    "largest_loss": -229.44892284544585,
+    "winning_trades": 12,
+    "losing_trades": 42
   },
   "cost_applied": 0.0001793141747733155,
   "data_range": {
@@ -15,5 +22,5 @@
     "end": "2017-12-31"
   },
   "total_bars": 18629,
-  "execution_time_seconds": 0.1
+  "execution_time_seconds": 0.09
 }
