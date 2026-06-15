@@ -14,7 +14,7 @@ def generate_signals(ohlcv: pd.DataFrame) -> tuple[pd.Series, pd.Series]:
     Long entry: EMA fast(12) cruza sobre EMA slow(26) Y ADX(14)>25 Y sesion
     Exit: EMA fast cruza debajo de EMA slow
 
-    --
+    ---
     hypothesis_id: HYP_003
     symbol: EURUSD
     timeframe: H1
