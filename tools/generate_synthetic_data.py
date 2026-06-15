@@ -88,8 +88,8 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--end",
-        default="2020-01-01T01:00:00",
-        help="End timestamp in ISO format (UTC)",
+        default="2020-01-02T06:00:00",
+        help="End timestamp in ISO format (UTC) — 30h range for sufficient trades",
     )
     parser.add_argument(
         "--ticks-per-second",

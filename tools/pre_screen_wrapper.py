@@ -21,51 +21,15 @@ from hermes_config import (
     DUCKDB_PATH,
 )
 from tools.ohlcv_builder import build_ohlcv_h1
-
-
-def _extract_yaml_from_docstring(file_path: Path) -> str:
-    content = file_path.read_text(encoding="utf-8")
-    start = content.find("---")
-    if start == -1:
-        raise ValueError(f"No starting yaml delimiter found in {file_path}")
-    end = content.find("---", start + 3)
-    if end == -1:
-        raise ValueError(f"No ending yaml delimiter found in {file_path}")
-    yaml_block = content[start + 3 : end].strip()
-    lines = yaml_block.split("\n")
-    if len(lines) > 1:
-        non_empty_rest = [l for l in lines[1:] if l.strip()]
-        if non_empty_rest:
-            min_indent = min(len(l) - len(l.lstrip()) for l in non_empty_rest)
-            if min_indent > 0:
-                lines = [lines[0]] + [l[min_indent:] if l.startswith(" " * min_indent) else l for l in lines[1:]]
-    return "\n".join(lines).strip()
+from tools.yaml_doc_manager import extract_yaml_docstring, update_yaml_docstring, to_native
 
 
 def parse_hypothesis_docstring(signal_path: str) -> Dict[str, Any]:
-    yaml_str = _extract_yaml_from_docstring(Path(signal_path))
-    return yaml.safe_load(yaml_str) or {}
+    return extract_yaml_docstring(Path(signal_path))
 
 
 def update_hypothesis_docstring(signal_path: str, data: Dict[str, Any]) -> None:
-    path = Path(signal_path)
-    text = path.read_text(encoding='utf-8')
-    start = text.find('---')
-    end = text.find('---', start + 3)
-    if start == -1 or end == -1:
-        raise ValueError('YAML delimiters not found in hypothesis file.')
-    # Use _extract_yaml_from_docstring to get clean YAML
-    yaml_str = _extract_yaml_from_docstring(path)
-    existing = yaml.safe_load(yaml_str) or {}
-    existing = _to_native(existing)
-    existing.update({
-        'dataset_used': data.get('dataset_used'),
-        'vectorbt_result': data.get('vectorbt_result'),
-        'code_commit_hash': data.get('code_commit_hash'),
-    })
-    new_yaml = yaml.safe_dump(existing, sort_keys=False)
-    new_text = text[: start + 3] + "\n" + new_yaml + "\n" + text[end:]
-    path.write_text(new_text, encoding='utf-8')
+    update_yaml_docstring(signal_path, data)
 
 
 def update_hypothesis_md(hypothesis_dir: str, data: Dict[str, Any]) -> None:
@@ -80,7 +44,7 @@ def update_hypothesis_md(hypothesis_dir: str, data: Dict[str, Any]) -> None:
     yaml_block = text[start + 3 : end].strip()
     existing = yaml.safe_load(yaml_block) or {}
     existing.update(data)
-    existing = _to_native(existing)
+    existing = to_native(existing)
     new_yaml = yaml.safe_dump(existing, sort_keys=False)
     new_text = text[: start + 3] + "\n" + new_yaml + "\n" + text[end:]
     md_path.write_text(new_text, encoding="utf-8")
@@ -115,17 +79,6 @@ def _write_log(hypothesis_id: str, entry: Dict[str, Any]) -> None:
     log_path.write_text(json.dumps(entry, indent=2, cls=NumpyEncoder), encoding="utf-8")
 
 
-def _to_native(obj):
-    if isinstance(obj, (np.integer,)):
-        return int(obj)
-    if isinstance(obj, (np.floating,)):
-        return float(obj)
-    if isinstance(obj, dict):
-        return {k: _to_native(v) for k, v in obj.items()}
-    if isinstance(obj, (list, tuple)):
-        return [_to_native(v) for v in obj]
-    return obj
-
 def _update_docs_and_log(signal_path, hypothesis_id, symbol, start_date, end_date, commit_hash, result):
     update_data = {
         "dataset_used": f"{symbol}:{start_date}-{end_date}",
@@ -136,7 +89,7 @@ def _update_docs_and_log(signal_path, hypothesis_id, symbol, start_date, end_dat
         },
         "code_commit_hash": commit_hash,
     }
-    update_data = _to_native(update_data)
+    update_data = to_native(update_data)
     update_hypothesis_docstring(str(signal_path), update_data)
     hypothesis_dir = Path("hypotheses") / hypothesis_id
     md_update = {

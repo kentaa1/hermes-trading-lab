@@ -45,8 +45,8 @@ def build_ohlcv_h1(
                 ROW_NUMBER() OVER (PARTITION BY date_trunc('hour', timestamp) ORDER BY timestamp DESC) as rn_desc
             FROM ticks
             WHERE symbol = '{symbol}'
-            AND timestamp >= '{start_date}'::TIMESTAMPTZ
-            AND timestamp <= '{end_date}'::TIMESTAMPTZ
+            AND timestamp >= '{start_date}'::TIMESTAMP
+            AND timestamp <= '{end_date}'::TIMESTAMP
             AND bid > 0 AND ask > 0 AND ask >= bid
         ),
         first_last AS (
