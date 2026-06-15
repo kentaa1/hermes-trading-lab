@@ -16,16 +16,20 @@ parameters:
 dataset_used: PENDING
 vectorbt_result: PENDING
 code_commit_hash: PENDING
-notes: "HYP_003 controla gestion de salida con stops ATR. Derivado del diagnostico de HYP_001: win_rate 22.2% con payoff simetrico produce PF=0.286. Palanca 1: stop fijo en 2 ATR para capear outliers (-229 pips en HYP_001). Palanca 2: trailing stop para dejar correr winners. Si mejora PF significativamente, el problema de HYP_001 era la gestion de salida, no el regimen ni la senal de entrada."
+notes: 'HYP_003 controla gestion de salida con stops ATR. Derivado del diagnostico
+  de HYP_001: win_rate 22.2% con payoff simetrico produce PF=0.286. Palanca 1: stop
+  fijo en 2 ATR para capear outliers (-229 pips en HYP_001). Palanca 2: trailing stop
+  para dejar correr winners. Si mejora PF significativamente, el problema de HYP_001
+  era la gestion de salida, no el regimen ni la senal de entrada.'
 stop_config:
   sl_stop: 0.0055
   sl_trail: true
 additional_dependencies:
 - ta
-pf: PENDING
-dd: PENDING
-trades: PENDING
-status: PENDING
+pf: 0.17277985938500687
+dd: 0.03217642521992825
+trades: 8
+status: 'Insufficient trades: 8 < 30'
 
 ---
 

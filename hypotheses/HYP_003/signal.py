@@ -14,7 +14,7 @@ def generate_signals(ohlcv: pd.DataFrame) -> tuple[pd.Series, pd.Series]:
     Long entry: EMA fast(12) cruza sobre EMA slow(26) Y ADX(14)>25 Y sesion
     Exit: EMA fast cruza debajo de EMA slow
 
-    ---
+---
     hypothesis_id: HYP_003
     symbol: EURUSD
     timeframe: H1
@@ -29,17 +29,24 @@ def generate_signals(ohlcv: pd.DataFrame) -> tuple[pd.Series, pd.Series]:
       session_end: 15
       session_timezone: UTC
       atr_period: 14
-    dataset_used: PENDING
-    vectorbt_result: PENDING
-    code_commit_hash: PENDING
-    notes: "HYP_003 controla gestion de salida con stops ATR. Derivado del diagnostico de HYP_001: win_rate 22.2% con payoff simetrico produce PF=0.286. Palanca 1: stop fijo en 2 ATR para capear outliers (-229 pips en HYP_001). Palanca 2: trailing stop para dejar correr winners. Si mejora PF significativamente, el problema de HYP_001 era la gestion de salida, no el regimen ni la senal de entrada."
+    dataset_used: EURUSD:2015-01-01-2017-12-31
+    vectorbt_result:
+      pf: 0.17277985938500687
+      dd: 0.03217642521992825
+      trades: 8
+    code_commit_hash: ecae78a29d606920efe194be57218c406370c39d
+    notes: 'HYP_003 controla gestion de salida con stops ATR. Derivado del diagnostico
+      de HYP_001: win_rate 22.2% con payoff simetrico produce PF=0.286. Palanca 1: stop
+      fijo en 2 ATR para capear outliers (-229 pips en HYP_001). Palanca 2: trailing stop
+      para dejar correr winners. Si mejora PF significativamente, el problema de HYP_001
+      era la gestion de salida, no el regimen ni la senal de entrada.'
     stop_config:
       sl_stop: 0.0055
       sl_trail: true
     additional_dependencies:
     - ta
-    ---
-    """
+    
+    ---    """
 
     ema_fast = ohlcv['close'].ewm(span=12, adjust=False).mean()
     ema_slow = ohlcv['close'].ewm(span=26, adjust=False).mean()

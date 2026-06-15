@@ -1,0 +1,19 @@
+{
+  "hypothesis_id": "HYP_003",
+  "timestamp": "2026-06-15T05:38:23.592819+00:00",
+  "git_hash": "ecae78a29d606920efe194be57218c406370c39d",
+  "result": "rejected",
+  "reason": "Insufficient trades: 8 < 30",
+  "metrics": {
+    "trades": 8,
+    "pf": 0.17277985938500687,
+    "dd": 0.03217642521992825,
+    "win_rate": 0.25,
+    "avg_win": 26.841292907252708,
+    "avg_loss": -51.783220958723014,
+    "largest_win": 39.50054314305774,
+    "largest_loss": -70.78528928392288,
+    "winning_trades": 2,
+    "losing_trades": 6
+  }
+}
