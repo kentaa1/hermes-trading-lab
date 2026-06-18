@@ -12,27 +12,19 @@ import time
 from pathlib import Path
 import mlflow
 
-# ═══════════════════════════════════════════════════════════════════
-# CONFIGURACIÓN
-# ═══════════════════════════════════════════════════════════════════
-
-REPO_ROOT = Path(__file__).resolve().parent
-MLFLOW_DIR = REPO_ROOT / "mlflow"
-MLFLOW_DB = MLFLOW_DIR / "mlflow.db"
-MLFLOW_TRACKING_URI = f"sqlite:///{MLFLOW_DB}"
-MLFLOW_EXPERIMENT = "hermes-godmode"
-MLFLOW_PORT = 5000
+from hermes_config import (
+    MLFLOW_TRACKING_URI,
+    MLFLOW_EXPERIMENT,
+    MLFLOW_PORT,
+)
 
 
 def setup_mlflow():
     """Configura MLflow con backend SQLite."""
-    
-    # Crear directorio si no existe
-    MLFLOW_DIR.mkdir(parents=True, exist_ok=True)
-    
+
     # Configurar tracking URI
     mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
-    
+
     # Crear experimento si no existe
     experiment = mlflow.get_experiment_by_name(MLFLOW_EXPERIMENT)
     if experiment is None:
