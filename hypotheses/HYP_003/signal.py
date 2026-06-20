@@ -1,61 +1,74 @@
 #!/usr/bin/env python3
 """
-HYP_003 — EMA Crossover + ADX Filter + Session + ATR Stop Management
+HYP_003 — Mean Reversion por Evaporación de Liquidez en Sesión NY-Asia
 """
 
 import pandas as pd
-from ta.trend import ADXIndicator
-from ta.volatility import AverageTrueRange
+import numpy as np
+import ta
 
 
 def generate_signals(ohlcv: pd.DataFrame) -> tuple[pd.Series, pd.Series]:
     """
-    Estrategia EMA crossover con filtro ADX, filtro de sesion y stops ATR.
-    Long entry: EMA fast(12) cruza sobre EMA slow(26) Y ADX(14)>25 Y sesion
-    Exit: EMA fast cruza debajo de EMA slow
+    Mean reversal impulsado por evaporación de liquidez en sesión de transición
+    NY-Asia (20:00-00:00 UTC). Entry: RSI < 25 AND close < lower Bollinger AND
+    hora UTC en [20, 23]. Exit: close cruza por encima de middle Bollinger.
 
----
+    ---
     hypothesis_id: HYP_003
     symbol: EURUSD
     timeframe: H1
-    source: manual
+    source: pending_verification
     gene_ids: []
+    hypothesis_family: liquidity_reversal_session_transition
     parameters:
-      fast_ema: 12
-      slow_ema: 26
-      adx_period: 14
-      adx_threshold: 25
-      session_start: 7
-      session_end: 15
-      session_timezone: UTC
-      atr_period: 14
-    dataset_used: EURUSD:2015-01-01-2017-12-31
-    vectorbt_result:
-      pf: 0.17277985938500687
-      dd: 0.03217642521992825
-      trades: 8
-    code_commit_hash: ecae78a29d606920efe194be57218c406370c39d
-    notes: 'HYP_003 controla gestion de salida con stops ATR. Derivado del diagnostico
-      de HYP_001: win_rate 22.2% con payoff simetrico produce PF=0.286. Palanca 1: stop
-      fijo en 2 ATR para capear outliers (-229 pips en HYP_001). Palanca 2: trailing stop
-      para dejar correr winners. Si mejora PF significativamente, el problema de HYP_001
-      era la gestion de salida, no el regimen ni la senal de entrada.'
-    stop_config:
-      sl_stop: 0.0055
-      sl_trail: true
+      rsi_period: 14
+      rsi_oversold: 25
+      rsi_overbought: 75
+      bb_period: 20
+      bb_std: 2
+      session_filter_start_utc: 20
+      session_filter_end_utc: 23
+    dataset_used: PENDING
+    vectorbt_result: PENDING
+    notes: >-
+      Mean reversal impulsado por evaporación de liquidez en sesión de transición
+      NY-Asia (20:00-00:00 UTC). HYP_001 y HYP_002 diagnosticaron que EMA+ADX
+      no genera edge en régimen 2015-2017. HYP_003 prueba el mecanismo
+      complementario. Si no alcanza MIN_TRADES=30, el resultado es
+      INSUFFICIENT_TRADES (informativo, no fallo del protocolo).
+      Falsabilidad pre-registrada.
+    code_commit_hash: PENDING
     additional_dependencies:
     - ta
-    
-    ---    """
+    ---
 
-    ema_fast = ohlcv['close'].ewm(span=12, adjust=False).mean()
-    ema_slow = ohlcv['close'].ewm(span=26, adjust=False).mean()
-    adx_ind = ADXIndicator(high=ohlcv['high'], low=ohlcv['low'], close=ohlcv['close'], window=14)
-    adx_val = adx_ind.adx()
-    session_mask = (ohlcv.index.hour >= 7) & (ohlcv.index.hour < 15)
-    crossover_entry = (ema_fast > ema_slow) & (ema_fast.shift(1) <= ema_slow.shift(1))
-    entries = crossover_entry & (adx_val > 25) & session_mask
-    exits = (ema_fast < ema_slow) & (ema_fast.shift(1) >= ema_slow.shift(1))
-    entries = entries.fillna(False)
-    exits = exits.fillna(False)
+    Args:
+        ohlcv: DataFrame con columnas open, high, low, close, volume y
+               DatetimeIndex UTC.
+
+    Returns:
+        (entries, exits): tupla de pd.Series[bool].
+    """
+    close = ohlcv["close"]
+
+    # ── Indicadores ─────────────────────────────────────────────────────
+    rsi = ta.momentum.RSIIndicator(close, window=14).rsi()
+
+    bb = ta.volatility.BollingerBands(close, window=20, window_dev=2)
+    bb_upper = bb.bollinger_hband()
+    bb_middle = bb.bollinger_mavg()
+    bb_lower = bb.bollinger_lband()
+
+    # ── Entry: sobreextensión en sesión de liquidez deprimida ────────────
+    oversold_undercut = (rsi < 25) & (close < bb_lower)
+    session_mask = ohlcv.index.hour.isin([20, 21, 22, 23])
+    entries = oversold_undercut & session_mask
+
+    # ── Exit: reversión a la media ───────────────────────────────────────
+    exits = close > bb_middle
+
+    entries = entries.fillna(False).astype(bool)
+    exits = exits.fillna(False).astype(bool)
+
     return entries, exits
