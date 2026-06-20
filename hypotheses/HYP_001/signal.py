@@ -19,6 +19,7 @@ def generate_signals(ohlcv: pd.DataFrame) -> tuple[pd.Series, pd.Series]:
     timeframe: H1
     source: manual
     gene_ids: []
+    hypothesis_family: ema_adx_trend_following
     parameters:
       fast_ema: 12
       slow_ema: 26
