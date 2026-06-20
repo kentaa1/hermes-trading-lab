@@ -81,14 +81,26 @@ def parse_csv_chunk(file_obj, chunk_size: int, skip_first_n: int = 0):
 
         total_read += 1
 
-        # Si BID y ASK están vacíos, intentar usar LAST
-        if not bid_str and not ask_str:
+        # Parsear BID y ASK (pueden estar vacíos individualmente)
+        try:
+            bid = float(bid_str) if bid_str else None
+            ask = float(ask_str) if ask_str else None
+        except ValueError:
+            rejects += 1
+            reject_reasons["invalid_price"] += 1
+            if total_read >= chunk_size:
+                break
+            continue
+
+        # Fallback: si uno está vacío, usar el otro como ambos
+        if bid is None and ask is None:
+            # Ambos vacíos — intentar LAST
             if last_str:
                 try:
                     bid = ask = float(last_str)
                 except ValueError:
                     rejects += 1
-                    reject_reasons["invalid_price"] += 1
+                    reject_reasons["empty_bid_ask"] += 1
                     if total_read >= chunk_size:
                         break
                     continue
@@ -98,16 +110,10 @@ def parse_csv_chunk(file_obj, chunk_size: int, skip_first_n: int = 0):
                 if total_read >= chunk_size:
                     break
                 continue
-        else:
-            try:
-                bid = float(bid_str) if bid_str else 0.0
-                ask = float(ask_str) if ask_str else 0.0
-            except ValueError:
-                rejects += 1
-                reject_reasons["invalid_price"] += 1
-                if total_read >= chunk_size:
-                    break
-                continue
+        elif bid is None:
+            bid = ask  # Solo ASK presente → usar ASK como precio
+        elif ask is None:
+            ask = bid  # Solo BID presente → usar BID como precio
 
         # Validación: bid > 0 y ask > 0
         if bid <= 0 or ask <= 0:
@@ -334,7 +340,12 @@ def main():
     print(f"{'━' * 60}")
 
     with open(csv_path, encoding="utf-8") as f:
-        # Saltar líneas iniciales si es necesario
+        # Saltar header si existe (primera fila contiene <DATE>, <BID>, etc.)
+        first_line = f.readline()
+        if not first_line.startswith("<DATE>"):
+            # No es header, volver al inicio
+            f.seek(0)
+        # Saltar líneas adicionales si el usuario lo pidió
         if skip_lines:
             for _ in range(skip_lines):
                 next(f)
